@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/config/theme.dart';
 import '../../core/network/storage_service.dart';
 import '../../models/usuario_model.dart';
+import '../../models/zona_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/local_preferences_service.dart';
 
@@ -16,6 +17,7 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
   Usuario? _usuario;
   String? _zonaNombre;
   bool _isLoading = true;
+  int _navIndex = 2; // Perfil activo
 
   @override
   void initState() {
@@ -25,7 +27,6 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
 
   Future<void> _cargarPerfil() async {
     try {
-      // Intenta refrescar desde la API; si falla, usa caché local
       final usuario = await AuthService.obtenerPerfilActual();
       final zona = await LocalPreferencesService.obtenerZonaPreferidaNombre();
       if (mounted) {
@@ -48,6 +49,114 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
     }
   }
 
+  // ── Diálogo para seleccionar zona preferida ─────────────────────────────
+  Future<void> _seleccionarZona() async {
+    // Zonas demo — en producción vendrían de GET /zonas
+    final zonas = [
+      Zona(id: 1, nombre: 'Centro', activa: true),
+      Zona(id: 2, nombre: 'Circunvalación', activa: true),
+      Zona(id: 3, nombre: 'Los Castaños', activa: true),
+      Zona(id: 4, nombre: 'Villas del Sol', activa: true),
+    ];
+
+    final seleccion = await showModalBottomSheet<Zona>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 36, height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: AppTheme.borderLight,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const Text(
+              'Zona preferida',
+              style: TextStyle(
+                fontSize: 17, fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Elegí la zona donde preferís recoger tus bolsas.',
+              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            ...zonas.map((z) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => Navigator.pop(ctx, z),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: z.nombre == _zonaNombre
+                        ? AppTheme.primaryLight
+                        : AppTheme.backgroundCard,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: z.nombre == _zonaNombre
+                          ? AppTheme.primary
+                          : AppTheme.borderLight,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        color: z.nombre == _zonaNombre
+                            ? AppTheme.primary
+                            : AppTheme.textMuted,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        z.nombre,
+                        style: TextStyle(
+                          fontWeight: z.nombre == _zonaNombre
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (z.nombre == _zonaNombre)
+                        const Icon(Icons.check_circle_rounded,
+                            color: AppTheme.primary, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+            )),
+          ],
+        ),
+      ),
+    );
+
+    if (seleccion != null) {
+      await LocalPreferencesService.guardarZonaPreferida(
+        id: seleccion.id,
+        nombre: seleccion.nombre,
+      );
+      if (mounted) {
+        setState(() => _zonaNombre = seleccion.nombre);
+      }
+    }
+  }
+
   Future<void> _cerrarSesion() async {
     final confirmar = await showDialog<bool>(
       context: context,
@@ -59,11 +168,9 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Cancelar'),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
             child: const Text('Cerrar sesión'),
           ),
         ],
@@ -123,16 +230,46 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
             Center(
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 36,
-                    backgroundColor: AppTheme.primary,
-                    child: Text(
-                      initiales,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  // Avatar con opción de tocar (futuro: cambiar foto)
+                  GestureDetector(
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('La foto de perfil estará disponible cuando se conecte el almacenamiento.'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 36,
+                          backgroundColor: AppTheme.primary,
+                          child: Text(
+                            initiales,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0, right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentMint,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt_rounded,
+                              size: 12, color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -159,7 +296,7 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
             const SizedBox(height: 24),
 
             // ── Sección: mis reservas ────────────────────────────────────
-            _SeccionTitulo('Mis reservas'),
+            _SeccionTitulo('MIS RESERVAS'),
             Card(
               margin: const EdgeInsets.only(bottom: 8),
               child: Padding(
@@ -201,12 +338,12 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppTheme.borderLight),
                       ),
-                      child: Column(
+                      child: const Column(
                         children: [
                           Icon(Icons.shopping_bag_outlined,
                               size: 36, color: AppTheme.textMuted),
-                          const SizedBox(height: 8),
-                          const Text(
+                          SizedBox(height: 8),
+                          Text(
                             'No tenés reservas activas',
                             style: TextStyle(
                               color: AppTheme.textSecondary,
@@ -214,8 +351,8 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
                               fontSize: 13,
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          const Text(
+                          SizedBox(height: 2),
+                          Text(
                             'Cuando reserves una bolsa aparecerá aquí.',
                             style: TextStyle(
                                 fontSize: 12, color: AppTheme.textMuted),
@@ -237,30 +374,45 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
             const SizedBox(height: 8),
 
             // ── Sección: datos personales ────────────────────────────────
-            _SeccionTitulo('Datos personales'),
+            _SeccionTitulo('DATOS PERSONALES'),
             _TileInfo(
               icon: Icons.phone_outlined,
               label: 'Teléfono',
-              sublabel: 'No disponible en este perfil',
+              sublabel: usuario.correo, // en demo, muestra el correo como referencia
+              trailing: const Icon(Icons.chevron_right, color: AppTheme.textMuted, size: 20),
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('El teléfono se podrá editar cuando se conecte el endpoint PUT /perfil.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
             ),
             _TileInfo(
               icon: Icons.location_on_outlined,
               label: 'Zona preferida',
-              sublabel: _zonaNombre ?? 'Sin zona seleccionada',
+              sublabel: _zonaNombre ?? 'Sin zona — toca para elegir',
+              trailing: const Icon(Icons.chevron_right, color: AppTheme.textMuted, size: 20),
+              onTap: _seleccionarZona,
             ),
 
             const SizedBox(height: 28),
 
             // ── Cerrar sesión ─────────────────────────────────────────────
-            OutlinedButton.icon(
-              onPressed: _cerrarSesion,
-              icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-              label: const Text(
-                'Cerrar sesión',
-                style: TextStyle(color: Colors.redAccent),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.redAccent),
+            SizedBox(
+              height: 44,
+              child: OutlinedButton.icon(
+                onPressed: _cerrarSesion,
+                icon: const Icon(Icons.logout_rounded, size: 18),
+                label: const Text('Cerrar sesión'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.redAccent,
+                  side: const BorderSide(color: Colors.redAccent),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
               ),
             ),
           ],
@@ -268,12 +420,28 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
       ),
       // ── Bottom nav ──────────────────────────────────────────────────────
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
+        currentIndex: _navIndex,
         onTap: (i) {
-          if (i == 0) {
-            // TODO: /inicio-cliente
-          } else if (i == 1) {
-            // TODO: /mis-reservas
+          if (i == _navIndex) return;
+          setState(() => _navIndex = i);
+          // Los tabs de Inicio y Reservas no están asignados a este dev,
+          // pero navegan para no quedar rotos
+          if (i == 0 || i == 1) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  i == 0
+                      ? 'Pantalla de Inicio pendiente de otro módulo.'
+                      : 'Pantalla de Reservas pendiente de otro módulo.',
+                ),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            // Volvemos a Perfil
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (mounted) setState(() => _navIndex = 2);
+            });
           }
         },
         items: const [

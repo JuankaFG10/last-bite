@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/config/theme.dart';
 import '../../../core/network/storage_service.dart';
 import '../../../models/sucursal_model.dart';
+import '../../../services/auth_service.dart';
 import '../../../services/sucursal_service.dart';
 
 class ElegirSucursalScreen extends StatefulWidget {
@@ -86,10 +87,9 @@ class _ElegirSucursalScreenState extends State<ElegirSucursalScreen> {
   Future<void> _seleccionar(Sucursal sucursal, {bool silencioso = false}) async {
     await StorageService.guardarSucursalId(sucursal.id);
     if (!mounted) return;
-    // TODO Bloque futuro: navegar a /reservas-del-dia
-    Navigator.pushReplacementNamed(
+    Navigator.pushNamed(
       context,
-      '/reservas-del-dia',
+      '/detalle-sucursal',
       arguments: sucursal.id,
     );
   }
@@ -98,6 +98,17 @@ class _ElegirSucursalScreenState extends State<ElegirSucursalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundMain,
+      appBar: AppBar(
+        title: const Text('Sucursales'),
+        leading: IconButton(
+          icon: const Icon(Icons.logout_rounded),
+          tooltip: 'Cerrar sesión',
+          onPressed: () async {
+            await AuthService.logout();
+            if (mounted) Navigator.pushReplacementNamed(context, '/bienvenida');
+          },
+        ),
+      ),
       body: SafeArea(
         child: _buildBody(),
       ),

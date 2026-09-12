@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/config/theme.dart';
 import '../../core/network/api_client.dart';
-import '../../services/sucursal_service.dart';
+import '../../core/network/storage_service.dart';
 import '../../models/sucursal_model.dart';
+import '../../services/sucursal_service.dart';
 
 class AdminCrearUsuarioScreen extends StatefulWidget {
   const AdminCrearUsuarioScreen({super.key});
@@ -29,6 +30,16 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
   List<Sucursal> _sucursales = [];
   bool _cargandoSucursales = false;
 
+  // Demo sucursales
+  static final List<Sucursal> _sucursalesDemo = [
+    Sucursal(id: 5, comercioId: 1, nombre: 'El Trigal · Centro',
+        direccion: 'Colonia Trejo', zonaId: 1, activa: true),
+    Sucursal(id: 6, comercioId: 1, nombre: 'El Trigal · Circunvalación',
+        direccion: 'Av. Circunvalación', zonaId: 2, activa: true),
+    Sucursal(id: 7, comercioId: 2, nombre: 'Panadería Los Ángeles',
+        direccion: 'Barrio El Centro', zonaId: 1, activa: true),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -47,7 +58,19 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
         });
       }
     } catch (_) {
-      if (mounted) setState(() => _cargandoSucursales = false);
+      // Modo demo — cargar datos de ejemplo
+      if (mounted) {
+        final token = await StorageService.obtenerToken();
+        setState(() {
+          if (token == 'demo-token-fake') {
+            _sucursales = _sucursalesDemo;
+            if (_sucursalesDemo.isNotEmpty) {
+              _sucursalSeleccionadaId = _sucursalesDemo.first.id;
+            }
+          }
+          _cargandoSucursales = false;
+        });
+      }
     }
   }
 
@@ -174,7 +197,7 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                    labelText: 'Correo corporativo / personal',
+                    labelText: 'Correo',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   validator: (v) {
@@ -191,7 +214,7 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                    labelText: 'Teléfono de contacto',
+                    labelText: 'Teléfono',
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
                   validator: (v) =>
@@ -202,18 +225,19 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
                 // ── Selector de rol ─────────────────────────────────────
                 DropdownButtonFormField<String>(
                   initialValue: _rolSeleccionado,
+                  isExpanded: true,
                   decoration: const InputDecoration(
-                    labelText: 'Rol del sistema',
+                    labelText: 'Rol',
                     prefixIcon: Icon(Icons.badge_outlined),
                   ),
                   items: const [
                     DropdownMenuItem(
                       value: 'COMERCIO',
-                      child: Text('Personal de comercio (cajero / encargado)'),
+                      child: Text('Comercio (cajero/encargado)'),
                     ),
                     DropdownMenuItem(
                       value: 'ADMIN',
-                      child: Text('Administrador del sistema'),
+                      child: Text('Administrador'),
                     ),
                   ],
                   onChanged: (val) {
@@ -228,6 +252,7 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
                       ? const LinearProgressIndicator()
                       : DropdownButtonFormField<int>(
                           initialValue: _sucursalSeleccionadaId,
+                          isExpanded: true,
                           decoration: const InputDecoration(
                             labelText: 'Sucursal asignada',
                             prefixIcon: Icon(Icons.storefront_outlined),

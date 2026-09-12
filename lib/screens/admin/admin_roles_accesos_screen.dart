@@ -133,11 +133,10 @@ class _AdminRolesAccesosScreenState extends State<AdminRolesAccesosScreen> {
                     onPressed: () => Navigator.pop(ctx, false),
                     child: const Text('Cancelar'),
                   ),
-                  ElevatedButton(
+                  TextButton(
                     onPressed: () => Navigator.pop(ctx, true),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent),
-                    child: const Text('Salir'),
+                    style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                    child: const Text('Cerrar sesión'),
                   ),
                 ],
               ),
