@@ -19,9 +19,11 @@ class Sucursal {
 
   factory Sucursal.fromJson(Map<String, dynamic> json) {
     return Sucursal(
-      id: json['id'] ?? 0,
+      // La API devuelve sucursalId y sucursal (SucursalDetalleResponse y
+      // AsignacionResponse). Se aceptan los dos nombres por compatibilidad.
+      id: json['sucursalId'] ?? json['id'] ?? 0,
       comercioId: json['comercioId'] ?? 0,
-      nombre: json['nombre'] ?? '',
+      nombre: json['sucursal'] ?? json['nombre'] ?? '',
       direccion: json['direccion'] ?? '',
       telefono: json['telefono'],
       zonaId: json['zonaId'] ?? 0,

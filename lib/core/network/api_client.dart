@@ -3,7 +3,10 @@ import 'package:http/http.dart' as http;
 import 'storage_service.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://localhost:5000/api';
+  // La API de .NET escucha en el puerto 5080 (ver launchSettings.json).
+  // Emulador de Android: http://10.0.2.2:5080/api
+  // Celular fisico o Web en otra PC: http://<IP-de-la-red>:5080/api
+  static const String baseUrl = 'http://localhost:5080/api';//varia segun la maquina donde corre
 
   // Petición GET
   static Future<http.Response> get(String endpoint) async {
