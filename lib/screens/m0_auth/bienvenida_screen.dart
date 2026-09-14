@@ -1,102 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/config/theme.dart';
-import '../../core/network/storage_service.dart';
-import '../../models/usuario_model.dart';
 
 class BienvenidaScreen extends StatelessWidget {
   const BienvenidaScreen({super.key});
-
-  // ── Modo demo: inyecta un usuario falso y navega sin backend ─────────────
-  Future<void> _entrarDemo(BuildContext context, String rol) async {
-    final usuario = Usuario(
-      id: 999,
-      nombres: 'Demo',
-      apellidos: rol == 'ADMIN' ? 'Admin' : rol == 'COMERCIO' ? 'Empleado' : 'Cliente',
-      correo: 'demo@lastbite.hn',
-      roles: [rol],
-      noShows: rol == 'CLIENTE' ? 1 : 0,
-    );
-    await StorageService.guardarToken('demo-token-fake');
-    await StorageService.guardarUsuario(usuario);
-
-    if (!context.mounted) return;
-
-    if (rol == 'ADMIN') {
-      Navigator.pushReplacementNamed(context, '/admin-roles');
-    } else if (rol == 'COMERCIO') {
-      Navigator.pushReplacementNamed(context, '/elegir-sucursal');
-    } else {
-      Navigator.pushReplacementNamed(context, '/perfil-cliente');
-    }
-  }
-
-  void _mostrarMenuDemo(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: AppTheme.borderLight,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const Text(
-              '🔧 Modo demo',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Entrá sin backend como un rol específico.',
-              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 20),
-            _DemoRolTile(
-              emoji: '👤',
-              label: 'Cliente',
-              sublabel: 'Ver perfil, reservas y zonas',
-              color: const Color(0xFFE8F5E9),
-              onTap: () { Navigator.pop(ctx); _entrarDemo(context, 'CLIENTE'); },
-            ),
-            const SizedBox(height: 10),
-            _DemoRolTile(
-              emoji: '🏪',
-              label: 'Comercio / Empleado',
-              sublabel: 'Selección de sucursal y panel',
-              color: AppTheme.primaryLight,
-              onTap: () { Navigator.pop(ctx); _entrarDemo(context, 'COMERCIO'); },
-            ),
-            const SizedBox(height: 10),
-            _DemoRolTile(
-              emoji: '🛡️',
-              label: 'Administrador',
-              sublabel: 'Gestión de usuarios y roles',
-              color: const Color(0xFFFFF3E0),
-              onTap: () { Navigator.pop(ctx); _entrarDemo(context, 'ADMIN'); },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -318,19 +224,6 @@ class BienvenidaScreen extends StatelessWidget {
                     child: const Text('Ya tengo cuenta'),
                   ),
                   const SizedBox(height: 14),
-
-                  // ── Acceso demo ─────────────────────────────────────────
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: () => _mostrarMenuDemo(context),
-                      icon: const Icon(Icons.science_outlined, size: 16),
-                      label: const Text('Modo demo'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.textMuted,
-                        textStyle: const TextStyle(fontSize: 13),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -359,67 +252,6 @@ class _FoodBadge extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(shape: BoxShape.circle, color: bg),
       child: Icon(icon, size: iconSize, color: Colors.white),
-    );
-  }
-}
-
-class _DemoRolTile extends StatelessWidget {
-  final String emoji;
-  final String label;
-  final String sublabel;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _DemoRolTile({
-    required this.emoji,
-    required this.label,
-    required this.sublabel,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 24)),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
-                      fontSize: 14,
-                    ),
-                  ),
-                  Text(
-                    sublabel,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios_rounded,
-                size: 14, color: AppTheme.textMuted),
-          ],
-        ),
-      ),
     );
   }
 }

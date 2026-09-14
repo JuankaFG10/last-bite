@@ -46,3 +46,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Ignorar la carpeta del backend local
+LastBite_Backend/
