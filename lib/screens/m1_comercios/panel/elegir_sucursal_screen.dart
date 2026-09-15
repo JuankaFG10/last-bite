@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/config/theme.dart';
 import '../../../core/network/storage_service.dart';
-import '../../../models/sucursal_model.dart';
+import '../../../models/asignacion_model.dart';
 import '../../../services/sucursal_service.dart';
 
 class ElegirSucursalScreen extends StatefulWidget {
@@ -12,7 +12,7 @@ class ElegirSucursalScreen extends StatefulWidget {
 }
 
 class _ElegirSucursalScreenState extends State<ElegirSucursalScreen> {
-  List<Sucursal>? _sucursales;
+  List<Asignacion>? _sucursales;
   String? _error;
   bool _isLoading = true;
 
@@ -23,23 +23,9 @@ class _ElegirSucursalScreenState extends State<ElegirSucursalScreen> {
   }
 
   // Sucursales demo para visualizar sin backend
-  static final List<Sucursal> _sucursalesDemo = [
-    Sucursal(
-      id: 5,
-      comercioId: 1,
-      nombre: 'El Trigal · Centro',
-      direccion: 'Colonia Trejo',
-      zonaId: 1,
-      activa: true,
-    ),
-    Sucursal(
-      id: 6,
-      comercioId: 1,
-      nombre: 'El Trigal · Circunvalación',
-      direccion: 'Av. Circunvalación',
-      zonaId: 2,
-      activa: true,
-    ),
+  static final List<Asignacion> _sucursalesDemo = [
+    Asignacion(sucursalId: 5, sucursal: 'El Trigal · Centro', cargo: 'ENCARGADO'),
+    Asignacion(sucursalId: 6, sucursal: 'El Trigal · Circunvalación', cargo: 'CAJERO'),
   ];
 
   Future<void> _cargarSucursales() async {
@@ -83,14 +69,13 @@ class _ElegirSucursalScreenState extends State<ElegirSucursalScreen> {
     }
   }
 
-  Future<void> _seleccionar(Sucursal sucursal, {bool silencioso = false}) async {
-    await StorageService.guardarSucursalId(sucursal.id);
+  Future<void> _seleccionar(Asignacion asignacion, {bool silencioso = false}) async {
+    await StorageService.guardarSucursalId(asignacion.sucursalId);
     if (!mounted) return;
-    // TODO Bloque futuro: navegar a /reservas-del-dia
     Navigator.pushReplacementNamed(
       context,
       '/reservas-del-dia',
-      arguments: sucursal.id,
+      arguments: asignacion.sucursalId,
     );
   }
 
@@ -169,10 +154,10 @@ class _ElegirSucursalScreenState extends State<ElegirSucursalScreen> {
             itemCount: sucursales.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, i) {
-              final suc = sucursales[i];
+              final asignacion = sucursales[i];
               return _SucursalTile(
-                sucursal: suc,
-                onTap: () => _seleccionar(suc),
+                asignacion: asignacion,
+                onTap: () => _seleccionar(asignacion),
               );
             },
           ),
@@ -210,18 +195,20 @@ class _ElegirSucursalScreenState extends State<ElegirSucursalScreen> {
 // ── Tile de sucursal ──────────────────────────────────────────────────────────
 
 class _SucursalTile extends StatelessWidget {
-  final Sucursal sucursal;
+  final Asignacion asignacion;
   final VoidCallback onTap;
 
-  const _SucursalTile({required this.sucursal, required this.onTap});
+  const _SucursalTile({required this.asignacion, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     // Iniciales del nombre de la sucursal para el avatar
-    final palabras = sucursal.nombre.trim().split(' ');
+    final palabras = asignacion.sucursal.trim().split(' ');
     final iniciales = palabras.length >= 2
         ? '${palabras[0][0]}${palabras[1][0]}'.toUpperCase()
-        : sucursal.nombre.substring(0, 2).toUpperCase();
+        : (asignacion.sucursal.isEmpty
+            ? '--'
+            : asignacion.sucursal.substring(0, asignacion.sucursal.length.clamp(0, 2)).toUpperCase());
 
     return Card(
       child: ListTile(
@@ -238,11 +225,11 @@ class _SucursalTile extends StatelessWidget {
           ),
         ),
         title: Text(
-          sucursal.nombre,
+          asignacion.sucursal,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         subtitle: Text(
-          sucursal.direccion,
+          asignacion.cargo,
           style: Theme.of(context).textTheme.bodyMedium,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

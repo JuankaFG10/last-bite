@@ -6,6 +6,7 @@ import 'screens/m0_auth/login_screen.dart';
 import 'screens/m0_auth/registro_screen.dart';
 import 'screens/m0_auth/perfil_cliente_screen.dart';
 import 'screens/m0_auth/modo_prueba_screen.dart';
+import 'screens/m2_oferta/explorar_screen.dart';
 import 'screens/m1_comercios/panel/elegir_sucursal_screen.dart';
 import 'screens/m1_comercios/panel/panel_shell_screen.dart';
 import 'screens/m1_comercios/cliente/detalle_sucursal_screen.dart';
@@ -34,6 +35,7 @@ class LastBiteApp extends StatelessWidget {
         '/registro':       (context) => const RegistroScreen(),
         '/perfil-cliente': (context) => const PerfilClienteScreen(),
         '/modo-prueba':    (context) => const ModoPruebaScreen(), // TODO: quitar cuando exista el login real
+        '/explorar':       (context) => const ExplorarScreen(),
 
         // ── M1 · Comercios ─────────────────────────────────────────────
         '/elegir-sucursal':   (context) => const ElegirSucursalScreen(),

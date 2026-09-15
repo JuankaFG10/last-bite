@@ -9,7 +9,7 @@ class ApiClient {
   // donde corre la API. El backend debe levantarse con:
   //   dotnet run --urls "http://0.0.0.0:5080"
   // y todos (backend y quien pruebe el front) deben estar en la misma wifi.
-	static const String baseUrl = 'http://localhost:5080/api';
+  static const String baseUrl = 'http://localhost:5080/api';
 
   // Petición GET
   static Future<http.Response> get(String endpoint) async {

@@ -112,6 +112,13 @@ class _PerfilClienteScreenState extends State<PerfilClienteScreen> {
       appBar: AppBar(
         title: const Text('Mi perfil'),
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            tooltip: 'Explorar bolsas',
+            icon: const Icon(Icons.storefront_outlined),
+            onPressed: () => Navigator.pushNamed(context, '/explorar'),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _cargarPerfil,

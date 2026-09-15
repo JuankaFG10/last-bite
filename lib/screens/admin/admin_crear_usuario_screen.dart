@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/config/theme.dart';
 import '../../core/network/api_client.dart';
 import '../../services/sucursal_service.dart';
-import '../../models/sucursal_model.dart';
+import '../../models/asignacion_model.dart';
 
 class AdminCrearUsuarioScreen extends StatefulWidget {
   const AdminCrearUsuarioScreen({super.key});
@@ -26,7 +26,7 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  List<Sucursal> _sucursales = [];
+  List<Asignacion> _sucursales = [];
   bool _cargandoSucursales = false;
 
   @override
@@ -42,7 +42,7 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
       if (mounted) {
         setState(() {
           _sucursales = lista;
-          if (lista.isNotEmpty) _sucursalSeleccionadaId = lista.first.id;
+          if (lista.isNotEmpty) _sucursalSeleccionadaId = lista.first.sucursalId;
           _cargandoSucursales = false;
         });
       }
@@ -232,11 +232,11 @@ class _AdminCrearUsuarioScreenState extends State<AdminCrearUsuarioScreen> {
                             labelText: 'Sucursal asignada',
                             prefixIcon: Icon(Icons.storefront_outlined),
                           ),
-                          items: _sucursales.map((suc) {
+                          items: _sucursales.map((asignacion) {
                             return DropdownMenuItem<int>(
-                              value: suc.id,
+                              value: asignacion.sucursalId,
                               child: Text(
-                                suc.nombre,
+                                asignacion.sucursal,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             );

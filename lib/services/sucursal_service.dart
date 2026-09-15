@@ -1,15 +1,16 @@
 import 'dart:convert';
 import '../core/network/api_client.dart';
 import '../models/sucursal_model.dart';
+import '../models/asignacion_model.dart';
 
 class SucursalService {
-  // Obtener las sucursales asignadas al empleado/comercio
-  static Future<List<Sucursal>> obtenerMisSucursales() async {
+  // Sucursales donde el empleado en sesión está asignado (AsignacionResponse)
+  static Future<List<Asignacion>> obtenerMisSucursales() async {
     final response = await ApiClient.get('/mis-sucursales');
 
     if (response.statusCode == 200) {
       final List<dynamic> listJson = jsonDecode(response.body);
-      return listJson.map((json) => Sucursal.fromJson(json)).toList();
+      return listJson.map((json) => Asignacion.fromJson(json)).toList();
     } else {
       throw Exception('No se pudieron obtener las sucursales asignadas.');
     }
